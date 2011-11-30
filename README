@@ -1,3 +1,14 @@
+type 'help' for further information
+
+SHELL.PHP
+    Source file
+
+SNOC.PHP
+    Obfuscated file
+
+=====================
+IMPORTANT
+====================
 COOKIE AUTHENTICATION:
     Name: sca
     Content: e760dc631f4ec5bc565d62c859b03c04 (='shell is not an oil company'->md5)
