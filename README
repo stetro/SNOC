@@ -6,6 +6,9 @@ SHELL.PHP
 SNOC.PHP
     Obfuscated file
 
+SNOC_COOKIE.CRX
+   Chrome extension to create snoc authentication cookie
+
 =====================
 IMPORTANT
 ====================
