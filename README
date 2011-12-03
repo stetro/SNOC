@@ -11,7 +11,14 @@ SNOC_COOKIE.CRX
 
 =====================
 IMPORTANT
-====================
+=====================
 COOKIE AUTHENTICATION:
     Name: sca
     Content: e760dc631f4ec5bc565d62c859b03c04 (='shell is not an oil company'->md5)
+
+=====================
+HOWTO
+=====================
+    1.  Find a way to upload the snoc.php on the selected server.
+    2.  Install the chrome extension snoc_cookie.crx to chrome.
+    3.  Open the path to snoc.php.
