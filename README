@@ -1,4 +1,11 @@
-type 'help' for further information
+=====================
+DISCLAIMER 
+=====================
+Although SNOC has been designed as an intrusion shell, please notice that 
+we refuse to be held responsible for usage that results in illegal actions. 
+We strongly advise you to use SNOC only for testing and demo purposes !
+
+
 
 SHELL.PHP
     Source file
@@ -22,3 +29,5 @@ HOWTO
     1.  Find a way to upload the snoc.php on the selected server.
     2.  Install the chrome extension snoc_cookie.crx to chrome.
     3.  Open the path to snoc.php.
+    4.  Now type 'help' for further information.
+
