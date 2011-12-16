@@ -147,12 +147,13 @@ function echoJS()
 
 	function Shell(){
 		var current_dir = "<?php echo dirname(__FILE__);  ?>";	// current directory
+		var self_name = "<?php echo __FILE__;  ?>";	// current directory
 		var history = new Array();				// command history stack
 		var history_pos = 0;					// history position
 		
 		// ------SETUP AUTOCOMPLETION
 		// standard commands (in case path cannot be read later on)			
-		var knownCommands = ["ls","cd","clear","man","ping","netstat","more","less","diff","rm","mkdir","mv","cp","wc","chmod","cat"];
+		var knownCommands = ["ls","cd","clear","man","ping","netstat","more","less","diff","rm","mkdir","mv","cp","wc","chmod","cat", "snocupdate"];
 		var displayAll = false;					// to display all commands when tab is pushed
 		var tempFoundCommands = [];				// temporary array to display all matching commands for an input
 		var displayed = false;					// true when matching commands have already been displayed
@@ -228,6 +229,10 @@ function echoJS()
 				case "alias":
 					$("#command").val("");
 					doAlias(commandArgs[1]);
+				break;
+				case "snocupdate":
+					$("#command").val("");
+					doSnocUpdate();
 				break;
 				// TODO: Add new special commands here !
 				case "":break;
@@ -356,8 +361,33 @@ function echoJS()
 			printShell("<br/><br/><table>"+
 			"<tr><th width=150>Functions</th><th>Usage</th></tr>"+
 			"<tr><td>download [file]</td><td>download [file] from current directory</td></tr>"+
+			"<tr><td>snocupdate</td><td>snoc shell auto update</td></tr>"+
 			"<tr><td>clear</td><td>clear shell prompt</td></tr>"+
 			"</table><br/><br/>");
+		}
+
+		// doSnocUpdate
+		function doSnocUpdate() {
+			printShell("<br />Starting snoc shell auto update..<br />");
+			command = "wget https://raw.github.com/tjosten/SNOC/master/snoc.php -O "+self_name;
+			var fullcommand = "cd "+current_dir+";"+command+" 2>&1;pwd";
+			postShell(fullcommand,function(data){
+				for(var i=data.length-3;i>0;i--) {
+					if(data[i] == ">")
+						break;
+				}
+				var output= data.substr(0,i+1);	// substr the output !
+
+				if (output.match("not found")) {
+					output = "wget not found. Download failed.";
+				}
+				
+				// substr the current dir and delete <br/> tag and newline
+				current_dir = data.substr(i+1,data.length).replace(/(<([^>]+)>)/ig,"").replace(/\n/g,"");
+				printShell(output);
+				$("#dir").empty().append(current_dir);	// update the current_dir field
+				location.reload();
+			});
 		}
 
 		// execute the alias command
