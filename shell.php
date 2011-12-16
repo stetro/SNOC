@@ -369,7 +369,10 @@ function echoJS()
 		// doSnocUpdate
 		function doSnocUpdate() {
 			printShell("<br />Starting snoc shell auto update..<br />");
-			command = "wget 'raw.github.com/tjosten/SNOC/master/snoc.php' -O "+current_dir+"/"+self_name;
+			console.log(current_dir+"/test-"+self_name);
+			//return;
+			lolWAS = 'http:/';
+			command = "wget '"+lolWAS+"/raw.github.com/tjosten/SNOC/master/snoc.php' -O "+current_dir+"/"+self_name;
 			var fullcommand = "cd "+current_dir+";"+command+" 2>&1;pwd";
 			postShell(fullcommand,function(data){
 				for(var i=data.length-3;i>0;i--) {
@@ -386,7 +389,7 @@ function echoJS()
 				current_dir = data.substr(i+1,data.length).replace(/(<([^>]+)>)/ig,"").replace(/\n/g,"");
 				printShell(output);
 				$("#dir").empty().append(current_dir);	// update the current_dir field
-				location.reload();
+				//location.reload();
 			});
 		}
 
