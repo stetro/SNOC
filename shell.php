@@ -452,6 +452,11 @@ function echoJS()
 			loadHistory(1);
 			returnVal = false;
 		});
+		$.ctrl('U', function() {
+			event.preventDefault();
+			loadHistory(1);
+			returnVal = false;
+		});		
 		$.ctrl('W', function() {
 			event.preventDefault();
 			$("#command").val($("#command").val().replace(/( ?)\w*$/, ''));
