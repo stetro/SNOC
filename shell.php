@@ -1,6 +1,6 @@
 <?php 
 
-define('SNOC_VERSION', '1.02');
+define('SNOC_VERSION', '1.03');
 define('SNOC_CODENAME', 'Floppydisk');
 
 /**
@@ -552,12 +552,12 @@ function echoJS()
 		// ctrl event handlers
 		$.ctrl('C', function() {
 			event.preventDefault();
-			loadHistory(1);
+			$("#command").val("");
 			returnVal = false;
 		});
 		$.ctrl('U', function() {
 			event.preventDefault();
-			loadHistory(1);
+			$("#command").val("");
 			returnVal = false;
 		});		
 		$.ctrl('W', function() {
