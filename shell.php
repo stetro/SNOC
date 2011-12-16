@@ -431,15 +431,18 @@ function echoJS()
 				}
 				var output= data.substr(0,i+1);	// substr the output !
 
+				abort = false;
 				if (output.match("not found")) {
-					output = "wget not found. Download failed.";
+					output = "wget not found. Download failed.<br />";
+					abort = true;
 				}
 				
 				// substr the current dir and delete <br/> tag and newline
 				current_dir = data.substr(i+1,data.length).replace(/(<([^>]+)>)/ig,"").replace(/\n/g,"");
 				printShell(output);
 				$("#dir").empty().append(current_dir);	// update the current_dir field
-				location.reload();
+				if (!abort)
+					location.reload();
 			});
 		}
 
