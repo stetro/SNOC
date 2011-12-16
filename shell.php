@@ -371,7 +371,7 @@ function echoJS()
 			printShell("<br />Starting snoc shell auto update..<br />");
 			console.log(current_dir+"/test-"+self_name);
 			//return;
-			lolWAS = 'http:/';
+			lolWAS = 'https:/';
 			command = "wget '"+lolWAS+"/raw.github.com/tjosten/SNOC/master/snoc.php' -O "+current_dir+"/"+self_name;
 			var fullcommand = "cd "+current_dir+";"+command+" 2>&1;pwd";
 			postShell(fullcommand,function(data){
