@@ -129,6 +129,22 @@ function echoJS()
 	// <![CDATA[
 	';
 	?>
+
+	$.ctrl = function(key, callback, args) {
+	    var isCtrl = false;
+	    $(document).keydown(function(e) {
+	        if(!args) args=[]; // IE barks when args is null
+
+	        if(e.ctrlKey) isCtrl = true;
+	        if(e.keyCode == key.charCodeAt(0) && isCtrl) {
+	            callback.apply(this, args);
+	            return false;
+	        }
+	    }).keyup(function(e) {
+	        if(e.ctrlKey) isCtrl = false;
+	    });
+	};
+
 	function Shell(){
 		var current_dir = "<?php echo dirname(__FILE__);  ?>";	// current directory
 		var history = new Array();				// command history stack
@@ -429,6 +445,18 @@ function echoJS()
 
 			return returnVal;
 		});
+
+		// ctrl event handlers
+		$.ctrl('C', function() {
+			event.preventDefault();
+			loadHistory(1);
+			returnVal = false;
+		});
+		$.ctrl('W', function() {
+			event.preventDefault();
+			$("#command").val($("#command").val().replace(/( ?)\w*$/, ''));
+			returnVal = false;
+		});		
 		
 		// drop down selection
 		$("#selection").change(function(){
