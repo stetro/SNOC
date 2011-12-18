@@ -1,0 +1,12 @@
+VERSION 1.1
+- snoc auto-update (+ version check)
+- shortcuts ^C, ^W, ^U
+- shell layout is now fullscreen
+
+VERSION 1.0
+- history
+- autocompletion (for commands)
+- cookie authentication
+- encoded file and requests
+- download file
+- predefined commands
