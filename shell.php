@@ -416,8 +416,6 @@ function echoJS()
 		// doSnocUpdate
 		function doSnocUpdate() {
 			printShell("<br />Starting snoc shell auto update..<br />");
-			console.log(current_dir+"/test-"+self_name);
-			//return;
 			lolWAS = 'https:/';
 			command = "wget '"+lolWAS+"/raw.github.com/stetro/SNOC/master/snoc.php' -O "+current_dir+"/"+self_name;
 			var fullcommand = "cd "+current_dir+";"+command+" 2>&1;pwd";
@@ -490,7 +488,6 @@ function echoJS()
 				if (data.success == false) {
 					printShell('<br /><p style="color:red">Version check failed. Please consider manual update or try \'snocupdate\'.</p>');
 				} else {
-					console.log(data);
 					if (data.version > snoc_version) {
 						update_string = 'Most recent snoc version: '+data.version+' '+data.codename+'. <br /><u>Update recommended! Type \'snocupdate\' for snoc auto update';
 					} else {
