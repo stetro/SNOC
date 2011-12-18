@@ -1,7 +1,7 @@
 <?php 
 
-define('SNOC_VERSION', '1.03');
-define('SNOC_CODENAME', 'Floppydisk');
+define('SNOC_VERSION', '1.1');
+define('SNOC_CODENAME', 'Floppydrive');
 
 /**
 returns boolean if page opend as shell command
