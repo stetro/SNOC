@@ -18,6 +18,9 @@ SNOC.PHP
 SNOC_COOKIE.CRX
    Chrome extension to create snoc authentication cookie
 
+VERSION.JSON
+   Version file for auto-update and version checking
+
 =====================
 IMPORTANT
 =====================
