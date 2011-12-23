@@ -1,0 +1,42 @@
+# DISCLAIMER 
+
+Although SNOC has been designed as an intrusion shell, please notice that 
+we refuse to be held responsible for usage that results in illegal actions. 
+We strongly advise you to use SNOC only for testing and demo purposes !
+
+# FILE INFO
+
+### SHELL.PHP
+ * Source file
+
+### SNOC.PHP
+ * Obfuscated file
+
+### SNOC_COOKIE.CRX
+ * Chrome extension to create snoc authentication cookie
+
+### VERSION.JSON
+ * Version file for auto-update and version checking
+
+
+# IMPORTANT
+
+### COOKIE AUTHENTICATION:
+ * Name: sca
+ * Content: e760dc631f4ec5bc565d62c859b03c04 (='shell is not an oil company'->md5)
+
+# HOWTO
+1. Find a way to upload the snoc.php on the selected server.
+2. Install the chrome extension snoc_cookie.crx to chrome.
+3. Open the path to snoc.php.
+4. Create the authentication cookie (e.g. with the chrome extension)
+5. Now type 'help' for further information.
+
+
+# DEVELOPER TEAM
+ * stetro
+ * fryie
+ * merenon
+ * kaed
+ * pascal
+ * force4
