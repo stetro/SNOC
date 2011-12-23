@@ -1,0 +1,14 @@
+<!DOCTYPE HTML>
+
+<script>
+safari.application.addEventListener("command", performCommand, false);
+
+function performCommand(event) {
+    if (event.command == "inject-snoc") {
+    	var tablink = safari.application.activeBrowserWindow.activeTab.url;
+    	document.cookie = 'sca=e760dc631f4ec5bc565d62c859b03c04; expires=Thu, 2 Aug 2111 20:47:11 UTC; path=/';
+    	if (tablink)
+       		safari.application.activeBrowserWindow.activeTab.url = tablink; 
+	}
+}
+</script>
