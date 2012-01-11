@@ -79,18 +79,18 @@ function doVersionCheck()
 {
 	$versionString = false;
 	// we open a socket because we have no guarantee that file_get_conents is enabled
-	$f = fsockopen('ssl://raw.github.com', 443);
+	$f = @fsockopen('ssl://raw.github.com', 443);
 	$request = "GET /stetro/SNOC/master/version.json HTTP/1.1\r\n";
 	$request.= "Host: raw.github.com\r\n";
 	$request.= "Connection: Close\r\n\r\n";
-	fwrite($f, $request);
-	while(!feof($f)) {
-		$l = fgets($f, 128);
+	@fwrite($f, $request);
+	while(!@feof($f)) {
+		$l = @fgets($f, 128);
 		if (strstr($l, '{')) {
 			$versionString = $l;
 		}
 	}
-	fclose($f);
+	@fclose($f);
 
 	if (!$versionString)
 		die(json_encode(array('success' => false)));
