@@ -1,6 +1,6 @@
 <?php 
 
-define('SNOC_VERSION', '1.1');
+define('SNOC_VERSION', '1.11');
 define('SNOC_CODENAME', 'Floppydrive');
 
 /**
